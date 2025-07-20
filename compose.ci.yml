@@ -1,0 +1,83 @@
+services:
+  teamcity-server:
+    image: jetbrains/teamcity-server:latest
+    ports:
+      - "8111:8111"
+    volumes:
+      - teamcity-server-data:/data/teamcity_server/datadir
+      - teamcity-server-logs:/opt/teamcity/logs   
+    networks:
+      - teamcity-network
+
+  teamcity-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    environment:
+      SERVER_URL: "http://teamcity-server:8111"
+      AGENT_NAME: "docker-build-agent"
+
+    volumes:
+      - teamcity-agent-conf:/data/teamcity-agent/conf
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - .:/opt/buildagent/work/repo 
+
+    depends_on:
+      - teamcity-server
+    networks:
+      - teamcity-network
+
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000" 
+    volumes:
+      - registry-data:/var/lib/registry 
+    networks:
+      - teamcity-network
+    restart: always 
+
+volumes:
+  teamcity-server-data:
+  teamcity-server-logs:
+  teamcity-agent-conf:
+  registry-data: 
+
+networks:
+  teamcity-network:
+    driver: bridge
+
+# services:
+#   teamcity-server:
+#     image: jetbrains/teamcity-server:latest
+#     ports:
+#       - "8111:8111"
+#     volumes:
+#       - teamcity-server-data:/data/teamcity_server/datadir
+#       - teamcity-server-logs:/opt/teamcity/logs
+#     networks: # This line should be correctly indented under teamcity-server
+#       - teamcity-network
+
+#   teamcity-agent:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.agent
+#     environment:
+#       SERVER_URL: "http://teamcity-server:8111"
+#       AGENT_NAME: "docker-build-agent"
+#     volumes:
+#       - teamcity-agent-conf:/data/teamcity-agent/conf
+#       - /var/run/docker.sock:/var/run/docker.sock 
+#     depends_on:
+#       - teamcity-server
+#     networks:
+#       - teamcity-network
+
+# volumes:
+#   teamcity-server-data:
+#   teamcity-server-logs:
+#   teamcity-agent-conf:
+
+# networks:
+#   teamcity-network:
+#     driver: bridge

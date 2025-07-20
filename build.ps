@@ -1,0 +1,36 @@
+function ci-up {
+    Write-Host "Spinning up TeamCity CI stack..."
+
+    docker compose -f compose.ci.yml up -d
+
+    Write-Host "Waiting for TeamCity server to be accessible at http://localhost:8111..."
+
+    $timeoutSeconds = 300 
+    $startTime = Get-Date
+
+    while ($true) {
+        $currentTime = Get-Date
+        $elapsedSeconds = ($currentTime - $startTime).TotalSeconds
+
+        if ($elapsedSeconds -ge $timeoutSeconds) {
+            Write-Error "TeamCity server did not become available within $timeoutSeconds seconds."
+            exit 1
+        }
+
+        try {
+            $response = Invoke-WebRequest -Uri "http://localhost:8111" -UseBasicParsing -ErrorAction SilentlyContinue
+            if ($response.StatusCode -eq 200) {
+                Write-Host "TeamCity server is up and running (HTTP 200 OK)."
+                break
+            }
+        } catch {
+        }
+
+        Write-Host "Still waiting for TeamCity server (elapsed: $($elapsedSeconds)s)..."
+        Start-Sleep -Seconds 5 
+    }
+
+    Write-Host "CI stack is up. Access TeamCity at http://localhost:8111"
+}
+ 
+ci-up
