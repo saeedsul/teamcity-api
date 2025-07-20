@@ -48,6 +48,7 @@ namespace People.Tests.Controllers
             var person = Assert.IsType<PersonDto>(okResult.Value);
             Assert.Equal(1, person.Id);
         }
+
         [Fact]
         public async Task GetById_ReturnsNotFound_WhenPersonDoesNotExist()
         {
@@ -61,6 +62,7 @@ namespace People.Tests.Controllers
             // Assert
             Assert.IsType<NotFoundResult>(result.Result);
         }
+
         [Fact]
         public async Task Add_ReturnsCreatedPerson_WhenValid()
         {
@@ -78,6 +80,7 @@ namespace People.Tests.Controllers
             var person = Assert.IsType<PersonDto>(createdResult.Value);
             Assert.Equal(1, person.Id);
         }
+
         [Fact]
         public async Task Add_ReturnsBadRequest_WhenInvalid()
         {
@@ -104,6 +107,7 @@ namespace People.Tests.Controllers
             // Assert
             Assert.IsType<NoContentResult>(result);
         }
+
         [Fact]
         public async Task Update_ReturnsNotFound_WhenPersonDoesNotExist()
         {
@@ -131,6 +135,7 @@ namespace People.Tests.Controllers
             // Assert
             Assert.IsType<NoContentResult>(result);
         }
+
         [Fact]
         public async Task Delete_ReturnsNotFound_WhenPersonDoesNotExist()
         {
