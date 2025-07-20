@@ -43,9 +43,9 @@ namespace People.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PersonDto>> Add([FromBody] PersonDto person)
         {
-            if (string.IsNullOrWhiteSpace(person.Name) || person.DateOfBirth == default)
+            if(!ModelState.IsValid)
             {
-                return BadRequest("Name and DateOfBirth are required.");
+                return BadRequest(ModelState);
             }
 
             var addedPerson = await _peopleService.AddPersonAsync(person);
@@ -60,10 +60,10 @@ namespace People.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePersonDto updatedPerson)
         {
-            if (string.IsNullOrWhiteSpace(updatedPerson.Name) || updatedPerson.DateOfBirth == default)
+            if(id <= 0 || !ModelState.IsValid)
             {
-                return BadRequest("Name and DateOfBirth are required for update.");
-            }
+                return BadRequest(ModelState);
+            } 
 
             var success = await _peopleService.UpdatePersonAsync(id, updatedPerson); 
             if (!success)

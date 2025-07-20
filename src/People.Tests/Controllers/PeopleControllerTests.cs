@@ -3,11 +3,6 @@ using Moq;
 using People.Api.Controllers;
 using People.Api.DTOs;
 using People.Api.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace People.Tests.Controllers
 {
@@ -72,7 +67,10 @@ namespace People.Tests.Controllers
             var addedPerson = new PersonDto { Id = 1, Name = "John Doe", DateOfBirth = new DateOnly(1990, 1, 1) };
             mockService.Setup(s => s.AddPersonAsync(newPerson))
                 .ReturnsAsync(addedPerson);
+
             var controller = new PeopleController(mockService.Object);
+            controller.ModelState.Clear();
+
             // Act
             var result = await controller.Add(newPerson);
             // Assert
@@ -86,13 +84,20 @@ namespace People.Tests.Controllers
         {
             // Arrange
             var mockService = new Mock<IPeopleService>();
-            var invalidPerson = new PersonDto { Name = "", DateOfBirth = default };
+            var invalidPerson = new PersonDto {Name="", DateOfBirth = default };
+
             var controller = new PeopleController(mockService.Object);
+
+            controller.ModelState.AddModelError("DateOfBirth", "DateOfBirth is required.");
+            controller.ModelState.AddModelError("Name", "Name is required.");
+
             // Act
             var result = await controller.Add(invalidPerson);
+
             // Assert
             Assert.IsType<BadRequestObjectResult>(result.Result);
         }
+
         [Fact]
         public async Task Update_ReturnsNoContent_WhenPersonExists()
         {
@@ -101,7 +106,10 @@ namespace People.Tests.Controllers
             var updatedPerson = new UpdatePersonDto {  Name = "John Doe", DateOfBirth = new DateOnly(1990, 1, 1) };
             mockService.Setup(s => s.UpdatePersonAsync(1, updatedPerson))
                 .ReturnsAsync(true);
+
             var controller = new PeopleController(mockService.Object);
+            controller.ModelState.Clear();
+
             // Act
             var result = await controller.Update(1, updatedPerson);
             // Assert
@@ -116,7 +124,10 @@ namespace People.Tests.Controllers
             var updatedPerson = new UpdatePersonDto { Name = "John Doe", DateOfBirth = new DateOnly(1990, 1, 1) };
             mockService.Setup(s => s.UpdatePersonAsync(1, updatedPerson))
                 .ReturnsAsync(false);
+
             var controller = new PeopleController(mockService.Object);
+            controller.ModelState.Clear();
+
             // Act
             var result = await controller.Update(1, updatedPerson);
             // Assert
