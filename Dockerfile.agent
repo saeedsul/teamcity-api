@@ -1,8 +1,13 @@
-FROM ubuntu:latest AS build_tools_installer
-ENV DEBIAN_FRONTEND=noninteractive
  
+
+FROM jetbrains/teamcity-agent:latest
+
+# Switch to root user temporarily to install Docker CLI
+USER root
+
+# Install necessary packages for Docker CLI
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -14,48 +19,5 @@ RUN apt-get update && \
     apt-get install -y docker-ce-cli && \
     rm -rf /var/lib/apt/lists/*
 
-# Add Microsoft package feed for .NET
-RUN wget https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
-    rm packages-microsoft-prod.deb && \
-    apt-get update
-
-# Install .NET 8 SDK
-RUN apt-get install -y dotnet-sdk-8.0 && \
-    rm -rf /var/lib/apt/lists/*
-
-# Stage 2: Your actual TeamCity Agent image
-FROM jetbrains/teamcity-agent:latest
-
-# Copy Docker CLI and .NET SDK from the installer stage
-USER root
-COPY --from=build_tools_installer /usr/bin/docker /usr/bin/docker
-COPY --from=build_tools_installer /usr/share/dotnet /usr/share/dotnet 
-COPY --from=build_tools_installer /usr/lib/dotnet /usr/lib/dotnet  
- 
-ENV PATH="/usr/share/dotnet:$PATH"
- 
 RUN groupadd -r docker -g 999 || true
- 
-
-# FROM jetbrains/teamcity-agent:latest
-
-# # Switch to root user temporarily to install Docker CLI
-# USER root
-
-# # Install necessary packages for Docker CLI
-# RUN apt-get update && \
-#     apt-get install -y \
-#     apt-transport-https \
-#     ca-certificates \
-#     curl \
-#     gnupg \
-#     lsb-release && \
-#     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-#     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-#     apt-get update && \
-#     apt-get install -y docker-ce-cli && \
-#     rm -rf /var/lib/apt/lists/*
-
-# RUN groupadd -r docker -g 999 || true
  
